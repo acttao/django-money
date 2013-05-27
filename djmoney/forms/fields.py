@@ -17,6 +17,8 @@ class MoneyField(forms.DecimalField):
             raise Exception("Invalid money input, expected sum and currency.")
 
         amount = super(MoneyField, self).to_python(value[0])
+        if amount is None:
+            return amount
         currency = value[1]
         if not currency:
             raise forms.ValidationError(_(u'Currency is missing'))
@@ -26,7 +28,8 @@ class MoneyField(forms.DecimalField):
         return Money(amount=amount, currency=currency)
 
     def validate(self, value):
-        if not isinstance(value, Money):
+        if value and not isinstance(value, Money):
             raise Exception("Invalid money input, expected Money object to validate.")
-
-        super(MoneyField, self).validate(value.amount)
+        if isinstance(value, Money):
+            value = value.amount
+        super(MoneyField, self).validate(value)
